@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, User } from '@/lib/storage';
-import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User as UserIcon, Mail, Phone, MapPin, Briefcase, Building } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { getCurrentUser, getApplicationsByWorkerId, getJobs, User } from '@/lib/storage';
+import Navbar from '@/components/Navbar';
+import { User as UserIcon, Mail, Phone, MapPin, Briefcase, Edit } from 'lucide-react';
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [stats, setStats] = useState({ appliedJobs: 0, postedJobs: 0 });
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -17,6 +19,15 @@ const Profile = () => {
       return;
     }
     setUser(currentUser);
+    
+    // Calculate stats
+    if (currentUser.userType === 'worker') {
+      const applications = getApplicationsByWorkerId(currentUser.id);
+      setStats({ appliedJobs: applications.length, postedJobs: 0 });
+    } else if (currentUser.userType === 'employer') {
+      const jobs = getJobs().filter(j => j.employerId === currentUser.id);
+      setStats({ appliedJobs: 0, postedJobs: jobs.length });
+    }
   }, [navigate]);
 
   if (!user) return null;
@@ -29,18 +40,24 @@ const Profile = () => {
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <UserIcon className="h-8 w-8 text-primary" />
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <UserIcon className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">{user.name}</CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      <Badge variant={user.userType === 'worker' ? 'default' : 'secondary'}>
+                        {user.userType === 'worker' ? 'Worker' : user.userType === 'employer' ? 'Employer' : 'Admin'}
+                      </Badge>
+                    </CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-2xl">{user.name}</CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    <Badge variant={user.userType === 'worker' ? 'default' : 'secondary'}>
-                      {user.userType === 'worker' ? 'Worker' : 'Employer'}
-                    </Badge>
-                  </CardDescription>
-                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate('/edit-profile')}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -80,7 +97,7 @@ const Profile = () => {
                 <div>
                   <h3 className="font-semibold text-lg mb-4">Company</h3>
                   <div className="flex items-center">
-                    <Building className="h-5 w-5 mr-3 text-muted-foreground" />
+                    <Briefcase className="h-5 w-5 mr-3 text-muted-foreground" />
                     <span>{user.company}</span>
                   </div>
                 </div>
@@ -95,6 +112,30 @@ const Profile = () => {
                     day: 'numeric'
                   })}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Card */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Activity</CardTitle>
+              <CardDescription>Your platform statistics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {user.userType === 'worker' && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Jobs Applied</span>
+                    <span className="text-2xl font-bold">{stats.appliedJobs}</span>
+                  </div>
+                )}
+                {user.userType === 'employer' && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Jobs Posted</span>
+                    <span className="text-2xl font-bold">{stats.postedJobs}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

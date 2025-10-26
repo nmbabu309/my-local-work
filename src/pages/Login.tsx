@@ -88,6 +88,7 @@ const Login = () => {
                 <div className="text-xs space-y-1">
                   <p><strong>Worker:</strong> rajesh@example.com / worker123</p>
                   <p><strong>Employer:</strong> priya@example.com / employer123</p>
+                  <p><strong>Admin:</strong> admin@bluujobs.com / admin123</p>
                 </div>
               </div>
 

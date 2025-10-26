@@ -37,6 +37,21 @@ const Navbar = () => {
                 <Link to="/jobs">
                   <Button variant="ghost">Jobs</Button>
                 </Link>
+                {currentUser.userType === 'employer' && (
+                  <Link to="/post-job">
+                    <Button variant="ghost">Post Job</Button>
+                  </Link>
+                )}
+                {currentUser.userType === 'worker' && (
+                  <Link to="/applied-jobs">
+                    <Button variant="ghost">Applications</Button>
+                  </Link>
+                )}
+                {currentUser.userType === 'admin' && (
+                  <Link to="/admin">
+                    <Button variant="ghost">Admin</Button>
+                  </Link>
+                )}
                 <Link to="/profile">
                   <Button variant="ghost" size="icon">
                     <User className="h-5 w-5" />

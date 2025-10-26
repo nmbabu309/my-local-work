@@ -7,7 +7,7 @@ export interface User {
   email: string;
   password: string;
   phone: string;
-  userType: 'worker' | 'employer';
+  userType: 'worker' | 'employer' | 'admin';
   location: string;
   skills?: string[];
   company?: string;
@@ -62,6 +62,16 @@ export const initializeData = () => {
         userType: 'employer',
         location: 'Mumbai, Maharashtra',
         company: 'Sharma Constructions',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '3',
+        name: 'Admin User',
+        email: 'admin@bluujobs.com',
+        password: 'admin123',
+        phone: '+91 98765 43212',
+        userType: 'admin',
+        location: 'Mumbai, Maharashtra',
         createdAt: new Date().toISOString(),
       },
     ];
@@ -209,4 +219,39 @@ export const getCurrentUser = (): User | null => {
 
 export const logout = (): void => {
   localStorage.removeItem('bluujobs_current_user');
+};
+
+// Update user profile
+export const updateUser = (userId: string, updates: Partial<User>): void => {
+  const users = getUsers();
+  const index = users.findIndex(u => u.id === userId);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...updates };
+    localStorage.setItem('bluujobs_users', JSON.stringify(users));
+    
+    // Update current user if it's the same user
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser.id === userId) {
+      setCurrentUser(users[index]);
+    }
+  }
+};
+
+// Delete user (admin only)
+export const deleteUser = (userId: string): void => {
+  const users = getUsers();
+  const filteredUsers = users.filter(u => u.id !== userId);
+  localStorage.setItem('bluujobs_users', JSON.stringify(filteredUsers));
+};
+
+// Delete job (admin or employer who created it)
+export const deleteJob = (jobId: string): void => {
+  const jobs = getJobs();
+  const filteredJobs = jobs.filter(j => j.id !== jobId);
+  localStorage.setItem('bluujobs_jobs', JSON.stringify(filteredJobs));
+  
+  // Also delete associated applications
+  const apps = getApplications();
+  const filteredApps = apps.filter(app => app.jobId !== jobId);
+  localStorage.setItem('bluujobs_applications', JSON.stringify(filteredApps));
 };
