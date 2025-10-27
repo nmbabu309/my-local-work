@@ -13,6 +13,9 @@ import PostJob from "./pages/PostJob";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import AppliedJobs from "./pages/AppliedJobs";
+import Notifications from "./pages/Notifications";
+import Favorites from "./pages/Favorites";
+import Messages from "./pages/Messages";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +38,9 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/applied-jobs" element={<AppliedJobs />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

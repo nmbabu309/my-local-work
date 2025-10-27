@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, getJobs, getApplicationsByWorkerId, Job, Application } from '@/lib/storage';
+import { getCurrentUser, getJobs, getApplicationsByWorkerId, Job, Application, getApplications } from '@/lib/storage';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, MapPin, IndianRupee, Clock, Plus } from 'lucide-react';
+import { Briefcase, MapPin, IndianRupee, Clock, Plus, TrendingUp, Users, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -23,27 +24,85 @@ const Dashboard = () => {
     setUser(currentUser);
 
     if (currentUser.userType === 'worker') {
-      setJobs(getJobs().filter(j => j.status === 'open'));
+      setJobs(getJobs().filter(j => j.status === 'open').slice(0, 6));
       setApplications(getApplicationsByWorkerId(currentUser.id));
     } else {
       setJobs(getJobs().filter(j => j.employerId === currentUser.id));
+      const allApplications = getApplications();
+      const myJobs = getJobs().filter(j => j.employerId === currentUser.id);
+      const myJobIds = myJobs.map(j => j.id);
+      setApplications(allApplications.filter(app => myJobIds.includes(app.jobId)));
     }
   }, [navigate]);
 
   if (!user) return null;
 
+  const stats = {
+    totalJobs: jobs.length,
+    totalApplications: applications.length,
+    acceptedApplications: applications.filter(a => a.status === 'accepted').length,
+    pendingApplications: applications.filter(a => a.status === 'pending').length,
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
           <p className="text-muted-foreground">
             {user.userType === 'worker' 
               ? 'Find your next opportunity below' 
-              : 'Manage your job postings'}
+              : 'Manage your job postings and applications'}
           </p>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {user.userType === 'worker' ? 'Available Jobs' : 'Posted Jobs'}
+              </CardTitle>
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalJobs}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {user.userType === 'worker' ? 'My Applications' : 'Total Applications'}
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalApplications}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Accepted</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-success" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-success">{stats.acceptedApplications}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <TrendingUp className="h-4 w-4 text-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-accent">{stats.pendingApplications}</div>
+            </CardContent>
+          </Card>
         </div>
 
         {user.userType === 'employer' && (
@@ -145,6 +204,8 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

@@ -38,6 +38,33 @@ export interface Application {
   appliedAt: string;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'success' | 'info' | 'warning';
+  read: boolean;
+  createdAt: string;
+}
+
+export interface Favorite {
+  id: string;
+  userId: string;
+  jobId: string;
+  createdAt: string;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  senderName: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}
+
 // Initialize sample data if localStorage is empty
 export const initializeData = () => {
   if (!localStorage.getItem('bluujobs_users')) {
@@ -72,6 +99,28 @@ export const initializeData = () => {
         phone: '+91 98765 43212',
         userType: 'admin',
         location: 'Mumbai, Maharashtra',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '4',
+        name: 'Amit Verma',
+        email: 'amit@example.com',
+        password: 'worker123',
+        phone: '+91 98765 43213',
+        userType: 'worker',
+        location: 'Delhi, NCR',
+        skills: ['Carpentry', 'Electrical Work'],
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '5',
+        name: 'Neha Patel',
+        email: 'neha@example.com',
+        password: 'employer123',
+        phone: '+91 98765 43214',
+        userType: 'employer',
+        location: 'Bangalore, Karnataka',
+        company: 'Patel Enterprises',
         createdAt: new Date().toISOString(),
       },
     ];
@@ -122,12 +171,52 @@ export const initializeData = () => {
         applicants: [],
         createdAt: new Date().toISOString(),
       },
+      {
+        id: '4',
+        title: 'Electrician for Shop Setup',
+        description: 'Need qualified electrician to setup wiring for new retail shop.',
+        employerId: '5',
+        employerName: 'Neha Patel',
+        location: 'Whitefield, Bangalore',
+        wage: 1000,
+        duration: '2 days',
+        category: 'Electrical',
+        status: 'open',
+        applicants: [],
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '5',
+        title: 'Cleaning Staff for Office',
+        description: 'Looking for daily cleaning staff for office premises. Timings: 6 AM to 9 AM.',
+        employerId: '5',
+        employerName: 'Neha Patel',
+        location: 'Koramangala, Bangalore',
+        wage: 500,
+        duration: 'Daily',
+        category: 'Cleaning',
+        status: 'open',
+        applicants: [],
+        createdAt: new Date().toISOString(),
+      },
     ];
     localStorage.setItem('bluujobs_jobs', JSON.stringify(sampleJobs));
   }
 
   if (!localStorage.getItem('bluujobs_applications')) {
     localStorage.setItem('bluujobs_applications', JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem('bluujobs_notifications')) {
+    localStorage.setItem('bluujobs_notifications', JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem('bluujobs_favorites')) {
+    localStorage.setItem('bluujobs_favorites', JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem('bluujobs_messages')) {
+    localStorage.setItem('bluujobs_messages', JSON.stringify([]));
   }
 };
 
@@ -254,4 +343,76 @@ export const deleteJob = (jobId: string): void => {
   const apps = getApplications();
   const filteredApps = apps.filter(app => app.jobId !== jobId);
   localStorage.setItem('bluujobs_applications', JSON.stringify(filteredApps));
+};
+
+// Notification operations
+export const getNotifications = (userId: string): Notification[] => {
+  const notifications = localStorage.getItem('bluujobs_notifications');
+  const allNotifications: Notification[] = notifications ? JSON.parse(notifications) : [];
+  return allNotifications.filter(n => n.userId === userId);
+};
+
+export const addNotification = (notification: Notification): void => {
+  const notifications = localStorage.getItem('bluujobs_notifications');
+  const allNotifications: Notification[] = notifications ? JSON.parse(notifications) : [];
+  allNotifications.push(notification);
+  localStorage.setItem('bluujobs_notifications', JSON.stringify(allNotifications));
+};
+
+export const markNotificationAsRead = (notificationId: string): void => {
+  const notifications = localStorage.getItem('bluujobs_notifications');
+  const allNotifications: Notification[] = notifications ? JSON.parse(notifications) : [];
+  const updated = allNotifications.map(n => 
+    n.id === notificationId ? { ...n, read: true } : n
+  );
+  localStorage.setItem('bluujobs_notifications', JSON.stringify(updated));
+};
+
+// Favorite operations
+export const getFavorites = (userId: string): Favorite[] => {
+  const favorites = localStorage.getItem('bluujobs_favorites');
+  const allFavorites: Favorite[] = favorites ? JSON.parse(favorites) : [];
+  return allFavorites.filter(f => f.userId === userId);
+};
+
+export const addFavorite = (favorite: Favorite): void => {
+  const favorites = localStorage.getItem('bluujobs_favorites');
+  const allFavorites: Favorite[] = favorites ? JSON.parse(favorites) : [];
+  allFavorites.push(favorite);
+  localStorage.setItem('bluujobs_favorites', JSON.stringify(allFavorites));
+};
+
+export const removeFavorite = (userId: string, jobId: string): void => {
+  const favorites = localStorage.getItem('bluujobs_favorites');
+  const allFavorites: Favorite[] = favorites ? JSON.parse(favorites) : [];
+  const filtered = allFavorites.filter(f => !(f.userId === userId && f.jobId === jobId));
+  localStorage.setItem('bluujobs_favorites', JSON.stringify(filtered));
+};
+
+export const isFavorite = (userId: string, jobId: string): boolean => {
+  const favorites = getFavorites(userId);
+  return favorites.some(f => f.jobId === jobId);
+};
+
+// Message operations
+export const getMessages = (userId: string): Message[] => {
+  const messages = localStorage.getItem('bluujobs_messages');
+  const allMessages: Message[] = messages ? JSON.parse(messages) : [];
+  return allMessages.filter(m => m.senderId === userId || m.receiverId === userId)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+};
+
+export const getConversation = (userId: string, otherUserId: string): Message[] => {
+  const messages = getMessages(userId);
+  return messages.filter(m => 
+    (m.senderId === userId && m.receiverId === otherUserId) ||
+    (m.senderId === otherUserId && m.receiverId === userId)
+  ).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+};
+
+export const sendMessage = (message: Message): void => {
+  const messages = localStorage.getItem('bluujobs_messages');
+  const allMessages: Message[] = messages ? JSON.parse(messages) : [];
+  allMessages.push(message);
+  localStorage.setItem('bluujobs_messages', JSON.stringify(allMessages));
 };

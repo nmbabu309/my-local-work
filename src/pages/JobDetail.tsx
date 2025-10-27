@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getJobById, getCurrentUser, addApplication, getApplications, Job, Application } from '@/lib/storage';
+import { getJobById, getCurrentUser, addApplication, getApplications, addFavorite, removeFavorite, isFavorite, addNotification, Job, Application } from '@/lib/storage';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, IndianRupee, Clock, Briefcase, User } from 'lucide-react';
+import { MapPin, IndianRupee, Clock, Briefcase, User, Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 const JobDetail = () => {
@@ -14,6 +15,7 @@ const JobDetail = () => {
   const [job, setJob] = useState<Job | null>(null);
   const [user, setUser] = useState(getCurrentUser());
   const [hasApplied, setHasApplied] = useState(false);
+  const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -30,6 +32,8 @@ const JobDetail = () => {
         app => app.jobId === jobData.id && app.workerId === currentUser.id
       );
       setHasApplied(applied);
+      
+      setIsFav(isFavorite(currentUser.id, jobData.id));
     }
   }, [id]);
 
@@ -58,25 +62,57 @@ const JobDetail = () => {
 
     addApplication(application);
     setHasApplied(true);
+    
+    // Add notification to the employer
+    addNotification({
+      id: Date.now().toString(),
+      userId: job.employerId,
+      title: 'New Application',
+      message: `${user.name} applied for your job: ${job.title}`,
+      type: 'info',
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+    
     toast.success('Application submitted successfully!');
+  };
+
+  const handleToggleFavorite = () => {
+    if (!user || !job) return;
+    
+    if (isFav) {
+      removeFavorite(user.id, job.id);
+      setIsFav(false);
+      toast.success('Removed from favorites');
+    } else {
+      addFavorite({
+        id: Date.now().toString(),
+        userId: user.id,
+        jobId: job.id,
+        createdAt: new Date().toISOString(),
+      });
+      setIsFav(true);
+      toast.success('Added to favorites');
+    }
   };
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 flex-1">
           <p>Job not found</p>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-3xl mx-auto">
           <Card>
             <CardHeader>
@@ -85,12 +121,21 @@ const JobDetail = () => {
                   <Badge>{job.category}</Badge>
                   <Badge variant="outline" className={
                     job.status === 'open' 
-                      ? 'bg-green-50 text-green-700 border-green-200' 
-                      : 'bg-gray-50 text-gray-700 border-gray-200'
+                      ? 'bg-success/10 text-success border-success' 
+                      : 'bg-muted text-muted-foreground'
                   }>
                     {job.status}
                   </Badge>
                 </div>
+                {user?.userType === 'worker' && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleFavorite}
+                  >
+                    <Heart className={`h-6 w-6 ${isFav ? 'fill-primary text-primary' : ''}`} />
+                  </Button>
+                )}
               </div>
               <CardTitle className="text-3xl">{job.title}</CardTitle>
               <CardDescription className="text-base mt-2">Posted by {job.employerName}</CardDescription>
@@ -152,6 +197,8 @@ const JobDetail = () => {
           </Card>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };
