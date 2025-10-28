@@ -6,11 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCurrentUser, getUsers, getJobs, getApplications, deleteUser, deleteJob, User, Job } from '@/lib/storage';
+import { getCurrentUser, getUsers, getJobs, getApplications, deleteUser, deleteJob, initializeData, User, Job } from '@/lib/storage';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Trash2, Users, Briefcase, AlertCircle, TrendingUp } from 'lucide-react';
+import { Trash2, Users, Briefcase, AlertCircle, TrendingUp, RefreshCw } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -53,6 +53,28 @@ const Admin = () => {
     loadData();
   };
 
+  const handleResetDemoData = () => {
+    // Clear all localStorage data
+    localStorage.removeItem('bluujobs_users');
+    localStorage.removeItem('bluujobs_jobs');
+    localStorage.removeItem('bluujobs_applications');
+    localStorage.removeItem('bluujobs_notifications');
+    localStorage.removeItem('bluujobs_favorites');
+    localStorage.removeItem('bluujobs_messages');
+    localStorage.removeItem('bluujobs_reviews');
+    localStorage.removeItem('bluujobs_current_user');
+    
+    // Reinitialize with seed data
+    initializeData();
+    
+    toast.success('Demo data has been reset successfully!');
+    
+    // Redirect to login after reset
+    setTimeout(() => {
+      navigate('/login');
+    }, 1500);
+  };
+
   if (!user) return null;
 
   const stats = {
@@ -92,9 +114,35 @@ const Admin = () => {
       
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertCircle className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Reset Demo Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset All Demo Data?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear all existing data and reload fresh sample data. 
+                    You will be logged out and redirected to the login page.
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetDemoData}>
+                    Reset Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
           <p className="text-muted-foreground">
             ⚠️ LOCAL DEMO ONLY: This admin panel uses client-side authentication. Never use in production.

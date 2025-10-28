@@ -33,6 +33,19 @@ const Login = () => {
     }
   };
 
+  const quickLogin = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    
+    const user = authenticateUser(demoEmail, demoPassword);
+    
+    if (user) {
+      setCurrentUser(user);
+      toast.success(`Welcome back, ${user.name}!`);
+      navigate('/dashboard');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       <Navbar />
@@ -83,12 +96,49 @@ const Login = () => {
                 </Button>
               </form>
 
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <p className="text-sm font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <p><strong>Worker:</strong> rajesh@example.com / worker123</p>
-                  <p><strong>Employer:</strong> priya@example.com / employer123</p>
+              <div className="mt-6 p-4 bg-muted rounded-lg space-y-3">
+                <p className="text-sm font-semibold text-center">Demo Login: Use sample accounts or create your own</p>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => quickLogin('admin@bluujobs.com', 'admin123')}
+                    className="flex flex-col h-auto py-2"
+                  >
+                    <span className="text-xs font-semibold">Admin</span>
+                    <span className="text-[10px] text-muted-foreground">Full Access</span>
+                  </Button>
+                  
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => quickLogin('neha@example.com', 'employer123')}
+                    className="flex flex-col h-auto py-2"
+                  >
+                    <span className="text-xs font-semibold">Employer</span>
+                    <span className="text-[10px] text-muted-foreground">Post Jobs</span>
+                  </Button>
+                  
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => quickLogin('rajesh@example.com', 'worker123')}
+                    className="flex flex-col h-auto py-2"
+                  >
+                    <span className="text-xs font-semibold">Worker</span>
+                    <span className="text-[10px] text-muted-foreground">Find Jobs</span>
+                  </Button>
+                </div>
+                
+                <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
+                  <p className="text-center font-medium mb-1">Or manually enter:</p>
                   <p><strong>Admin:</strong> admin@bluujobs.com / admin123</p>
+                  <p><strong>Employer:</strong> neha@example.com / employer123</p>
+                  <p><strong>Worker:</strong> rajesh@example.com / worker123</p>
                 </div>
               </div>
 
