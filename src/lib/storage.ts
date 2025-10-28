@@ -12,6 +12,13 @@ export interface User {
   skills?: string[];
   company?: string;
   createdAt: string;
+  pincode?: string;
+  area?: string;
+  experience?: string;
+  bio?: string;
+  rating?: number;
+  totalRatings?: number;
+  profileComplete?: number;
 }
 
 export interface Job {
@@ -27,6 +34,11 @@ export interface Job {
   status: 'open' | 'closed';
   applicants: string[];
   createdAt: string;
+  pincode?: string;
+  area?: string;
+  experienceRequired?: string;
+  jobType?: 'full-time' | 'part-time' | 'contract';
+  expiresAt?: string;
 }
 
 export interface Application {
@@ -63,6 +75,17 @@ export interface Message {
   content: string;
   timestamp: string;
   read: boolean;
+}
+
+export interface Review {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  fromUserName: string;
+  rating: number;
+  comment: string;
+  jobId?: string;
+  createdAt: string;
 }
 
 // Initialize sample data if localStorage is empty
@@ -217,6 +240,10 @@ export const initializeData = () => {
 
   if (!localStorage.getItem('bluujobs_messages')) {
     localStorage.setItem('bluujobs_messages', JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem('bluujobs_reviews')) {
+    localStorage.setItem('bluujobs_reviews', JSON.stringify([]));
   }
 };
 
@@ -415,4 +442,45 @@ export const sendMessage = (message: Message): void => {
   const allMessages: Message[] = messages ? JSON.parse(messages) : [];
   allMessages.push(message);
   localStorage.setItem('bluujobs_messages', JSON.stringify(allMessages));
+};
+
+export const markMessageAsRead = (messageId: string): void => {
+  const messages = localStorage.getItem('bluujobs_messages');
+  const allMessages: Message[] = messages ? JSON.parse(messages) : [];
+  const updated = allMessages.map(m => 
+    m.id === messageId ? { ...m, read: true } : m
+  );
+  localStorage.setItem('bluujobs_messages', JSON.stringify(updated));
+};
+
+// Review operations
+export const getReviews = (userId: string): Review[] => {
+  const reviews = localStorage.getItem('bluujobs_reviews');
+  const allReviews: Review[] = reviews ? JSON.parse(reviews) : [];
+  return allReviews.filter(r => r.toUserId === userId);
+};
+
+export const addReview = (review: Review): void => {
+  const reviews = localStorage.getItem('bluujobs_reviews');
+  const allReviews: Review[] = reviews ? JSON.parse(reviews) : [];
+  allReviews.push(review);
+  localStorage.setItem('bluujobs_reviews', JSON.stringify(allReviews));
+  
+  // Update user's average rating
+  const userReviews = allReviews.filter(r => r.toUserId === review.toUserId);
+  const avgRating = userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length;
+  
+  updateUser(review.toUserId, {
+    rating: avgRating,
+    totalRatings: userReviews.length
+  });
+};
+
+export const updateApplicationStatus = (applicationId: string, status: 'pending' | 'accepted' | 'rejected'): void => {
+  const apps = getApplications();
+  const index = apps.findIndex(app => app.id === applicationId);
+  if (index !== -1) {
+    apps[index].status = status;
+    localStorage.setItem('bluujobs_applications', JSON.stringify(apps));
+  }
 };

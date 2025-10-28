@@ -17,9 +17,17 @@ import Notifications from "./pages/Notifications";
 import Favorites from "./pages/Favorites";
 import Messages from "./pages/Messages";
 import Admin from "./pages/Admin";
+import Help from "./pages/Help";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import { initializeData } from "./lib/storage";
 
 const queryClient = new QueryClient();
+
+// Initialize sample data
+initializeData();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -42,6 +50,10 @@ const App = () => (
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<Terms />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
