@@ -12,26 +12,43 @@ BluuJobs comes pre-populated with realistic sample data to demonstrate all featu
 - **Password:** admin123
 - **Access:** Full access to admin dashboard, user management, job management, and analytics
 
-### Sample Employers (3)
+### Sample Employers (5)
 1. **Neha Desai** (Desai Constructions)
    - Email: neha@example.com
    - Password: employer123
    - Location: Andheri West, Mumbai (400058)
    - Rating: 4.4/5 (18 ratings)
+   - Category: Construction
 
 2. **Vikram Malhotra** (HomeCare Services)
    - Email: vikram@example.com
    - Password: employer123
    - Location: Bandra West, Mumbai (400050)
    - Rating: 4.6/5 (24 ratings)
+   - Category: Home Maintenance & Cleaning
 
 3. **Anjali Reddy** (Quick Delivery Hub)
    - Email: anjali@example.com
    - Password: employer123
    - Location: Powai, Mumbai (400076)
    - Rating: 4.5/5 (21 ratings)
+   - Category: Delivery Services
 
-### Sample Workers (6)
+4. **Rahul Kapoor** (SafeHands Painting)
+   - Email: rahul@example.com
+   - Password: employer123
+   - Location: Malad West, Mumbai (400064)
+   - Rating: 4.7/5 (32 ratings)
+   - Category: Painting Services
+
+5. **Kavita Singh** (CleanCare Services)
+   - Email: kavita@example.com
+   - Password: employer123
+   - Location: Borivali East, Mumbai (400092)
+   - Rating: 4.8/5 (28 ratings)
+   - Category: Premium Cleaning
+
+### Sample Workers (10)
 1. **Rajesh Kumar** - Plumber
    - Email: rajesh@example.com
    - Password: worker123
@@ -72,13 +89,45 @@ BluuJobs comes pre-populated with realistic sample data to demonstrate all featu
    - Location: Goregaon East, Mumbai (400063)
    - Rating: 4.6/5 (41 ratings)
 
-6. **Ramesh Yadav** - Delivery
+6. **Ramesh Yadav** - Delivery Worker
    - Email: ramesh@example.com
    - Password: worker123
    - Skills: Delivery, Loading, Transportation
    - Experience: 3 years
    - Location: Kurla West, Mumbai (400070)
    - Rating: 4.3/5 (29 ratings)
+
+7. **Meena Devi** - Cook
+   - Email: meena@example.com
+   - Password: worker123
+   - Skills: Cooking, Indian Cuisine, Home Cooking
+   - Experience: 12 years
+   - Location: Malad West, Mumbai (400064)
+   - Rating: 4.9/5 (56 ratings)
+
+8. **Arjun Patil** - Driver
+   - Email: arjun@example.com
+   - Password: worker123
+   - Skills: Driving, Car Maintenance, Route Navigation
+   - Experience: 9 years
+   - Location: Borivali East, Mumbai (400092)
+   - Rating: 4.7/5 (44 ratings)
+
+9. **Lakshmi Nair** - House Help
+   - Email: lakshmi@example.com
+   - Password: worker123
+   - Skills: Housekeeping, Babysitting, Elderly Care
+   - Experience: 6 years
+   - Location: Vile Parle East, Mumbai (400057)
+   - Rating: 4.8/5 (39 ratings)
+
+10. **Ganesh Jadhav** - Welder
+    - Email: ganesh@example.com
+    - Password: worker123
+    - Skills: Welding, Metal Work, Fabrication
+    - Experience: 11 years
+    - Location: Dadar East, Mumbai (400028)
+    - Rating: 4.6/5 (35 ratings)
 
 ---
 
@@ -231,8 +280,8 @@ Located in the Admin Dashboard, this feature allows complete data reset:
 
 ### Users
 - 1 Admin
-- 3 Employers with realistic company profiles
-- 6 Workers with diverse skills across categories
+- 5 Employers with realistic company profiles
+- 10 Workers with diverse skills across categories
 
 ### Job Categories
 - Plumbing (1)
@@ -256,6 +305,10 @@ All jobs and users are distributed across Mumbai:
 - Thane West (400601)
 - Goregaon East (400063)
 - Kurla West (400070)
+- Malad West (400064)
+- Borivali East (400092)
+- Vile Parle East (400057)
+- Dadar East (400028)
 
 ---
 
