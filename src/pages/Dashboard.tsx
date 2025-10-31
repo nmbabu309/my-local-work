@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getCurrentUser, getJobs, getApplicationsByWorkerId, Job, Application, getApplications, getUsers, updateJob, deleteJob, User } from '@/lib/storage';
+import { getCurrentUser, getJobs, getApplicationsByWorkerId, Job, Application, getApplications, getUsers, updateJob, deleteJob, User, getNotifications } from '@/lib/storage';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, MapPin, IndianRupee, Clock, Plus, TrendingUp, Users, CheckCircle2, Eye, Pencil, Trash2, Phone, Mail, Star, AlertCircle } from 'lucide-react';
+import { Briefcase, MapPin, IndianRupee, Clock, Plus, TrendingUp, Users, CheckCircle2, Eye, Pencil, Trash2, Phone, Mail, Star, AlertCircle, Search, Calendar, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
@@ -25,6 +25,9 @@ const Dashboard = () => {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Job>>({});
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'closed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'week' | 'month'>('all');
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const loadData = () => {
     const currentUser = getCurrentUser();
@@ -43,6 +46,11 @@ const Dashboard = () => {
       const allApplications = getApplications();
       const myJobIds = employerJobs.map(j => j.id);
       setApplications(allApplications.filter(app => myJobIds.includes(app.jobId)));
+      
+      // Get unread notifications count
+      const notifications = getNotifications(currentUser.id);
+      const unread = notifications.filter(n => !n.read).length;
+      setUnreadNotifications(unread);
     }
   };
 
@@ -52,9 +60,32 @@ const Dashboard = () => {
 
   if (!user) return null;
 
-  const filteredJobs = filterStatus === 'all' 
-    ? jobs 
-    : jobs.filter(j => j.status === filterStatus);
+  const filteredJobs = jobs.filter(job => {
+    // Status filter
+    if (filterStatus !== 'all' && job.status !== filterStatus) return false;
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      if (!job.title.toLowerCase().includes(query) && 
+          !job.category.toLowerCase().includes(query) &&
+          !job.location.toLowerCase().includes(query)) {
+        return false;
+      }
+    }
+    
+    // Date filter
+    if (dateFilter !== 'all') {
+      const jobDate = new Date(job.createdAt);
+      const now = new Date();
+      const daysDiff = Math.floor((now.getTime() - jobDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (dateFilter === 'week' && daysDiff > 7) return false;
+      if (dateFilter === 'month' && daysDiff > 30) return false;
+    }
+    
+    return true;
+  });
 
   const activeJobs = jobs.filter(j => j.status === 'open').length;
   const stats = {
@@ -114,9 +145,24 @@ const Dashboard = () => {
         
         <div className="container mx-auto px-4 py-8 flex-1">
           {/* Header Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
-            <p className="text-muted-foreground">Manage your job postings and track applications</p>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
+              <p className="text-muted-foreground">Manage your job postings and track applications</p>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative"
+              onClick={() => navigate('/notifications')}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Statistics Cards */}
@@ -172,39 +218,69 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Action Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="flex gap-2">
-              <Button
-                variant={filterStatus === 'all' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('all')}
-                size="sm"
-              >
-                All Jobs
-              </Button>
-              <Button
-                variant={filterStatus === 'open' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('open')}
-                size="sm"
-              >
-                Active
-              </Button>
-              <Button
-                variant={filterStatus === 'closed' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('closed')}
-                size="sm"
-              >
-                Closed
-              </Button>
-            </div>
-            
-            <Link to="/post-job">
-              <Button size="lg" className="w-full sm:w-auto">
-                <Plus className="mr-2 h-5 w-5" />
-                Post New Job
-              </Button>
-            </Link>
-          </div>
+          {/* Search and Filters */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4">
+                {/* Search and Date Filter Row */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search jobs by title, category, or location..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <SelectValue placeholder="Filter by date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="week">Last 7 Days</SelectItem>
+                      <SelectItem value="month">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filters and Post Job Button */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={filterStatus === 'all' ? 'default' : 'outline'}
+                      onClick={() => setFilterStatus('all')}
+                      size="sm"
+                    >
+                      All Jobs
+                    </Button>
+                    <Button
+                      variant={filterStatus === 'open' ? 'default' : 'outline'}
+                      onClick={() => setFilterStatus('open')}
+                      size="sm"
+                    >
+                      Active
+                    </Button>
+                    <Button
+                      variant={filterStatus === 'closed' ? 'default' : 'outline'}
+                      onClick={() => setFilterStatus('closed')}
+                      size="sm"
+                    >
+                      Closed
+                    </Button>
+                  </div>
+                  <Link to="/post-job">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      <Plus className="mr-2 h-5 w-5" />
+                      Post New Job
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Job Management Table */}
           <Card>
